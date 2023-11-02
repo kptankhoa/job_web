@@ -39,8 +39,8 @@ export const useJobState = (): JobContextState => {
 
   const createJob = async (body: Partial<Job>) => {
     setLoading(true);
-    const job: Job | null = await createJobApi(body);
-    if (job) {
+    const success: boolean = await createJobApi(body);
+    if (success) {
       getJobs();
 
       return;

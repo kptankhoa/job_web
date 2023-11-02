@@ -36,3 +36,9 @@ rules:
     - always
   newline-before-return:
     - error
+  react-hooks/exhaustive-deps:
+    - off
+settings:
+  import/resolver:
+    typescript: true
+    node: true

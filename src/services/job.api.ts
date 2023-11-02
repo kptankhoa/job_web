@@ -54,17 +54,17 @@ export const getJobApi = async (id: number): Promise<Job | null> => {
   }
 };
 
-export const createJobApi = async (body: any): Promise<Job | null> => {
+export const createJobApi = async (body: any): Promise<boolean> => {
   try {
     const endpoint = '/jobs';
     const json = JSON.stringify(body);
     const res = await axiosInstance.post<JobResponse>(endpoint, json);
 
-    return convertToJob(res.data);
+    return res.status === StatusCodes.CREATED;
   } catch (e) {
     console.log(e);
 
-    return null;
+    return false;
   }
 };
 

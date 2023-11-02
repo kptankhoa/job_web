@@ -1,12 +1,23 @@
+import { Button, FullPageContainer } from 'components';
 import React from 'react';
+import { useNavigate } from 'react-router-dom';
+import { PAGE_ROUTE } from 'constant';
 
 const Home = () => {
-  console.log('home');
+  const navigate = useNavigate();
 
   return (
-    <div>
-      HOME
-    </div>
+    <FullPageContainer
+      content="Job Management"
+    >
+      <Button
+        variant="outlined"
+        color="primary"
+        onClick={() => navigate(PAGE_ROUTE.JOBS)}
+      >
+        Job List
+      </Button>
+    </FullPageContainer>
   );
 };
 

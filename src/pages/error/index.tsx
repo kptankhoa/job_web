@@ -1,11 +1,13 @@
 import React from 'react';
+import { FullPageContainer } from 'components';
 
-const Index = () => {
+const ErrorPage = () => {
   return (
-    <div>
-      ERROR
-    </div>
+    <FullPageContainer
+      content="Something went wrong"
+      subContent="Please try again!"
+    />
   );
 };
 
-export default Index;
+export default ErrorPage;

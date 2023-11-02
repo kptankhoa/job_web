@@ -1,10 +1,12 @@
 import React from 'react';
+import { FullPageContainer } from 'components';
 
 const NotFound = () => {
   return (
-    <div>
-      NOT FOUND
-    </div>
+    <FullPageContainer
+      content="404"
+      subContent="Page not found"
+    />
   );
 };
 

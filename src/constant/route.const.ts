@@ -1,3 +1,9 @@
+import { RouteProps } from 'react-router-dom';
+
+export type PageRoute = RouteProps & {
+  isPrivate?: boolean;
+}
+
 export const PAGE_ROUTE = {
   HOME: '/',
   JOBS: '/jobs',

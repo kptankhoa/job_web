@@ -1,11 +1,4 @@
-import Home from './home';
-import NotFound from './not_found';
-import JobPage from './job_page';
-import Error from './error';
-
-export {
-  Home,
-  NotFound,
-  JobPage,
-  Error
-};
+export { default as HomePage } from './home';
+export { default as NotFoundPage } from './not_found';
+export { default as JobListPage } from './job_list';
+export { default as ErrorPage } from './error';
