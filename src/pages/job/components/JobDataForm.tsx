@@ -42,7 +42,7 @@ const JobDataForm = ({
           disabled={disabled}
           label="Expiry Date"
           value={data?.expiryDate || null}
-          onChange={(value) => console.log(value)}
+          onChange={(value) => onChange('expiryDate', value)}
         />
       </Grid>
       <Grid item xs={12}>
