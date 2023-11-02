@@ -20,7 +20,7 @@ export interface JobListResponse {
   total: number;
 }
 
-export const getJobListApi = async (filter: JobFilter): Promise<{ data: Job[], total: number }> => {
+export const getJobsApi = async (filter: JobFilter): Promise<{ data: Job[], total: number }> => {
   try {
     const query = queryString.stringify(filter);
     const endpoint = `/jobs?${query}`;
@@ -54,7 +54,7 @@ export const getJobApi = async (id: number): Promise<Job | null> => {
   }
 };
 
-export const addNewJobApi = async (body: any): Promise<Job | null> => {
+export const createJobApi = async (body: any): Promise<Job | null> => {
   try {
     const endpoint = '/jobs';
     const json = JSON.stringify(body);

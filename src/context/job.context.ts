@@ -2,16 +2,20 @@ import { createContext, useContext } from 'react';
 import { Job, JobFilter } from 'constant';
 
 export interface JobContextState {
-  filter: JobFilter;
-  data: Job[];
+  jobData: {
+    data: Job[];
+    total: number;
+  };
   selectedJob: Job | null;
+  filter: JobFilter;
   loading: boolean;
+  onUpdateFilter: (key: keyof JobFilter, value: any) => void;
+  setSelectedJob: (job: Job) => void;
   getJobs: () => void;
   getJob: (id: number) => void;
-  createJob: (body: any) => void;
-  updateJob: (id: number, body: any) => void;
+  createJob: (body: Partial<Job>) => void;
+  updateJob: (id: number, body: Partial<Job>) => void;
   deleteJob: (id: number) => void;
-  setSelectedJob: (job: Job) => void;
 }
 
 export const JobContext = createContext<JobContextState>({} as JobContextState);
