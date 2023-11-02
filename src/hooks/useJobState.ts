@@ -15,7 +15,6 @@ const initFilter: JobFilter = {
 
 export const useJobState = (): JobContextState => {
   const [jobData, setJobData] = useState<JobContextState['jobData']>(initJobData);
-  const [selectedJob, setSelectedJob] = useState<Job | null>(null);
   const [filter, setFilter] = useState<JobFilter>(initFilter);
   const [loading, setLoading] = useState<boolean>(false);
 
@@ -26,37 +25,32 @@ export const useJobState = (): JobContextState => {
   const getJobs = async () => {
     setLoading(true);
     const data = await getJobsApi(filter);
-    setLoading(false);
     setJobData(data);
+    setLoading(false);
   };
 
   const getJob = async (id: number) => {
     setLoading(true);
     const job: Job | null = await getJobApi(id);
     setLoading(false);
-    setSelectedJob(job);
+
+    return job;
   };
 
-  const createJob = async (body: Partial<Job>) => {
+  const createJob = async (body: Partial<Job>): Promise<boolean> => {
     setLoading(true);
     const success: boolean = await createJobApi(body);
-    if (success) {
-      getJobs();
-
-      return;
-    }
     setLoading(false);
+
+    return success;
   };
 
-  const updateJob = async  (id: number, body: Partial<Job>) => {
+  const updateJob = async  (id: number, body: Partial<Job>): Promise<boolean> => {
     setLoading(true);
     const success: boolean = await updateJobApi(id, body);
-    if (success) {
-      getJobs();
-
-      return;
-    }
     setLoading(false);
+
+    return success;
   };
 
   const deleteJob = async (id: number) => {
@@ -73,11 +67,9 @@ export const useJobState = (): JobContextState => {
 
   return {
     jobData,
-    selectedJob,
     filter,
     loading,
     onUpdateFilter,
-    setSelectedJob,
     getJobs,
     getJob,
     createJob,

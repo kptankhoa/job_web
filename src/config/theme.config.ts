@@ -6,10 +6,10 @@ declare module '@mui/material/styles' {
     background: {
       default: string;
       header: string;
+      fullPage: string;
     };
     text: {
       default: string;
-      dark: string;
     }
   }
 
@@ -17,22 +17,22 @@ declare module '@mui/material/styles' {
     background?: {
       default?: string;
       header?: string;
+      fullPage?: string;
     };
     text?: {
       default?: string;
-      dark?: string;
     }
   }
 }
 
 export const theme: Theme = createTheme({
   background: {
-    default: lightGreen[50],
-    header: cyan[300]
+    default: cyan[50],
+    header: cyan[300],
+    fullPage: cyan[200]
   },
   text: {
     default: grey[100],
-    dark: grey[600]
   },
   palette: {
     primary: {

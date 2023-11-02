@@ -20,7 +20,7 @@ const FullPageContainer = ({ content, subContent, children }: Props) => {
         flexDirection: 'column',
         justifyContent: 'center',
         alignItems: 'center',
-        background: theme.background.default
+        background: theme.background.fullPage
       }}
     >
       <HeaderText

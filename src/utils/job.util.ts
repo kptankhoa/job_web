@@ -8,6 +8,7 @@ export const convertToJob = (data: any): Job => ({
 });
 
 export const prepareJobForApiCall = (data: Partial<Job>): any => ({
-  ...data,
+  title: data.title,
+  description: data.description,
   expiryDate: data.expiryDate?.toISOString() || null
 });

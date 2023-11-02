@@ -26,16 +26,13 @@ const HeaderPageContainer = ({ pageTitle, children }: Props) => {
         justifyContent="center"
         style={{
           padding: '40px 10px',
-          flex: 1,
-          color: theme.text.dark,
+          flex: 1
         }}
       >
-        <Grid
-          item
-          md={12}
-          lg={8}
-        >
-          {children}
+        <Grid item md={12} lg={8}>
+          <Grid container justifyContent="center">
+            {children}
+          </Grid>
         </Grid>
       </Grid>
     </div>

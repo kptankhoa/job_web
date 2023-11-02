@@ -26,7 +26,7 @@ const HeaderText = ({
         <Typography
           style={{
             color: theme.text.default,
-            fontSize: 32,
+            fontSize: 28,
             fontWeight: 300
           }}
         >

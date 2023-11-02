@@ -1,10 +1,10 @@
 import queryString from 'query-string';
-import { Job, JobFilter } from 'constant';
-import { axiosInstance } from 'config';
-import { convertToJob } from 'utils';
 import {
   StatusCodes,
 } from 'http-status-codes';
+import { Job, JobFilter } from 'constant';
+import { axiosInstance } from 'config';
+import { convertToJob, prepareJobForApiCall } from 'utils';
 
 export interface JobResponse {
   id: number;
@@ -57,7 +57,7 @@ export const getJobApi = async (id: number): Promise<Job | null> => {
 export const createJobApi = async (body: any): Promise<boolean> => {
   try {
     const endpoint = '/jobs';
-    const json = JSON.stringify(body);
+    const json = JSON.stringify(prepareJobForApiCall(body));
     const res = await axiosInstance.post<JobResponse>(endpoint, json);
 
     return res.status === StatusCodes.CREATED;
@@ -71,7 +71,7 @@ export const createJobApi = async (body: any): Promise<boolean> => {
 export const updateJobApi = async (id: number, body: any): Promise<boolean> => {
   try {
     const endpoint = `/jobs/${id}`;
-    const json = JSON.stringify(body);
+    const json = JSON.stringify(prepareJobForApiCall(body));
     const res = await axiosInstance.put(endpoint, json);
 
     return res.status === StatusCodes.NO_CONTENT;

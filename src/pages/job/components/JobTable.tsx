@@ -4,6 +4,7 @@ import { formatDateForShow } from 'utils';
 import { Table } from 'components';
 import { useJobContext } from 'context';
 import { defaultColDef, JobFilter } from 'constant';
+import ActionCell from './ActionCell';
 
 const getColumns = ({ page, size }: JobFilter): GridColDef[] => [
   {
@@ -14,13 +15,6 @@ const getColumns = ({ page, size }: JobFilter): GridColDef[] => [
     type: 'number',
     valueGetter: ({ api, row }: GridValueGetterParams) => page * size + api.getRowIndexRelativeToVisibleRows(row.id) + 1
 
-  },
-  {
-    ...defaultColDef,
-    field: 'id',
-    headerName: 'ID',
-    width: 90,
-    type: 'number'
   },
   {
     ...defaultColDef,
@@ -55,6 +49,13 @@ const getColumns = ({ page, size }: JobFilter): GridColDef[] => [
     flex: 0.8,
     valueGetter: ({ row }: GridValueGetterParams) => formatDateForShow(row.updatedAt)
   },
+  {
+    ...defaultColDef,
+    field: 'action',
+    headerName: 'Action',
+    flex: 0.8,
+    renderCell: (params) => <ActionCell {...params} />
+  }
 ];
 
 const JobTable = () => {

@@ -9,11 +9,13 @@ const Home = () => {
   return (
     <FullPageContainer
       content="Job Management"
+      subContent="by kptankhoa"
     >
       <Button
         variant="outlined"
         color="primary"
         onClick={() => navigate(PAGE_ROUTE.JOBS)}
+        style={{ marginTop: 10, width: 200 }}
       >
         Job List
       </Button>
