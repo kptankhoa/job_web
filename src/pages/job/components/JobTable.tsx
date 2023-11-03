@@ -69,11 +69,12 @@ const JobTable = () => {
 
   return (
     <Table
+      data={data}
+      total={total}
       page={filter.page}
-      totalPage={Math.ceil(total / filter.size)}
+      pageSize={filter.size}
       loading={loading}
       columns={columns}
-      data={data}
       getRowId={(row) => row.id}
       onPageChange={(page) => onUpdateFilter('page', page)}
     />

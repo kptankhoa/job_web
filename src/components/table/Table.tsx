@@ -1,13 +1,14 @@
 import React from 'react';
 import { DataGrid, GridColDef, GridRowIdGetter } from '@mui/x-data-grid';
-import { Box, Pagination, PaginationItem } from '@mui/material';
+import { Box, Pagination, PaginationItem, Typography, useTheme } from '@mui/material';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import ArrowForwardIcon from '@mui/icons-material/ArrowForward';
 
 interface Props {
   data: any[];
+  total: number;
   page: number;
-  totalPage: number;
+  pageSize: number;
   loading: boolean;
   columns: GridColDef[];
   getRowId: GridRowIdGetter;
@@ -15,7 +16,20 @@ interface Props {
 }
 
 const Table = (props: Props) => {
-  const { data, page, totalPage, onPageChange, ...rest } = props;
+  const {
+    data, total, page, pageSize, onPageChange, ...rest
+  } = props;
+  const theme = useTheme();
+  const totalPage = Math.ceil(total / pageSize);
+  const getPagingInfo = () => {
+    if (!total) {
+      return '';
+    }
+    const from = page * pageSize + 1;
+    const to = Math.min((page + 1) * pageSize, total);
+
+    return `${from} - ${to} of ${total}`;
+  };
 
   return (
     <Box
@@ -26,14 +40,22 @@ const Table = (props: Props) => {
         flexDirection: 'column'
       }}
     >
-      <div
+      <Typography
         style={{
           height: 50,
           display: 'flex',
           justifyContent: 'flex-end',
-          alignItems: 'center'
+          alignItems: 'center',
+          gap: 10,
         }}
       >
+        <div
+          style={{
+            color: theme.palette.primary.main
+          }}
+        >
+          {getPagingInfo()}
+        </div>
         <Pagination
           count={totalPage}
           page={page + 1}
@@ -45,7 +67,7 @@ const Table = (props: Props) => {
             />
           )}
         />
-      </div>
+      </Typography>
       <div
         style={{ flex: 1 }}
       >
