@@ -5,6 +5,7 @@ import {
   HomePage, JobListPage, NewJobPage, NotFoundPage, ErrorPage, EditJobPage
 } from 'pages';
 import PrivateRoute from './PrivateRoute';
+import ReportRecording from '../pages/record';
 
 const withPrivateRoute = (element: ReactElement) => (
   <PrivateRoute>
@@ -32,6 +33,11 @@ const router = createBrowserRouter(
     {
       path: PAGE_ROUTE.EDIT_JOB,
       element: withPrivateRoute(<EditJobPage />),
+      errorElement: <ErrorPage />
+    },
+    {
+      path: 'record',
+      element: <ReportRecording />,
       errorElement: <ErrorPage />
     },
     {
