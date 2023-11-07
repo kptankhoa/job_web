@@ -1,19 +1,9 @@
 import React from 'react';
 import { useRecordingContext } from '../context/RecordingState';
 import { Grid, Typography } from '@mui/material';
+import { Button } from 'components';
 import { BlobData } from '../const';
-import { Button } from '../../../components';
-
-const downloadBlob = (blob: Blob, fileName: string) => {
-  const fileUrl = URL.createObjectURL(blob);
-  const link = document.createElement('a');
-  link.href = fileUrl;
-  link.download = fileName;
-  link.target = '_blank';
-  document.body.appendChild(link);
-  link.click();
-  document.body.removeChild(link);
-};
+import { downloadBlob } from '../util/recording.util';
 
 const TranscriptContainer = () => {
   const {

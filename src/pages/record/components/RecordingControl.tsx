@@ -8,12 +8,10 @@ import { Button } from 'components';
 const ControlButton = ({
   onClick, name, disabled
 }: any) => (
-  <Grid item
-    // eslint-disable-next-line @typescript-eslint/no-empty-function
-    onClick={disabled ? () => {} : onClick}
-  >
+  <Grid item>
     <Button
-      onClick={onClick}
+      // eslint-disable-next-line @typescript-eslint/no-empty-function
+      onClick={disabled ? () => {} : onClick}
       disabled={disabled}
       variant="contained"
       color="primary"

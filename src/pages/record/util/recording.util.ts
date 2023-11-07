@@ -8,22 +8,6 @@ import {
   RECORDING_TYPE
 } from '../const';
 
-const unexpectedMatches = [', m', ', L', '. m', '. L', '.m', '.L', ',m', ',L'];
-export const replaceUnitRegexFunction = (wrapper: any) => (match: string) => {
-  if (unexpectedMatches.includes(match)) {
-    return match;
-  }
-
-  return wrapper(match);
-};
-
-export const formatText = (text: string) => text.replaceAll(/\[|\]|\*\*/g, '')
-  .replaceAll('mm3', 'mm³')
-  .replaceAll('cm3', 'cm³')
-  .replaceAll('dm3', 'L')
-  .replaceAll('m3', 'm³');
-
-
 export const createRecordRTCAudioStream = ({ attributes, setRecordRTC, mapNewStream }: CreateAudioStream) => {
   navigator.mediaDevices.getUserMedia({
     audio: true
@@ -208,4 +192,15 @@ export const convertToBase64 = (blob: Blob, callback: (base64Str: string) => voi
   };
 
   reader.readAsDataURL(blob);
+};
+
+export const downloadBlob = (blob: Blob, fileName: string) => {
+  const fileUrl = URL.createObjectURL(blob);
+  const link = document.createElement('a');
+  link.href = fileUrl;
+  link.download = fileName;
+  link.target = '_blank';
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
 };

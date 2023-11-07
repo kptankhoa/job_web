@@ -4,7 +4,6 @@ import { RecordingState } from './RecordingState';
 import {
   RecordData,
   RECORDING_STATE,
-  RECORDING_TYPE,
   SILENCE_COUNTER_LIMIT,
   VAD_STREAM_TIME_SLICE,
   SPEECH_TO_TEXT_WS,
@@ -159,7 +158,8 @@ const useRecordingState = (): RecordingState => {
   };
 
   const onStop = () => {
-    recordRTC?.pauseRecording();
+    recordRTC?.stopRecording();
+    stopAllStreamData();
     setRecordingState(RECORDING_STATE.STOPPED);
   };
 
