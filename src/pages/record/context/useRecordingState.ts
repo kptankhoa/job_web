@@ -31,6 +31,7 @@ const useRecordingState = (): RecordingState => {
   const [transcriptData, setTranscriptData] = useState<string>('');
   const [silenceCounter, setSilenceCounter] = useState<number>(0);
   const [blobDataMap, setBlobDataMap] = useState<{ [key: string]: BlobData }>({});
+  const [recordedBlob, setRecordedBlob] = useState<Blob | null>(null);
   const { mapNewStream, stopAllStreamData } = useHandleMediaStream();
 
   const onVadSocketMessage = (e: MessageEvent) => {
@@ -158,7 +159,10 @@ const useRecordingState = (): RecordingState => {
   };
 
   const onStop = () => {
-    recordRTC?.stopRecording();
+    recordRTC?.stopRecording(() => {
+      const newBlob = recordRTC.getBlob();
+      setRecordedBlob(newBlob);
+    });
     stopAllStreamData();
     setRecordingState(RECORDING_STATE.STOPPED);
   };
@@ -175,6 +179,7 @@ const useRecordingState = (): RecordingState => {
     setNewRecordData(null);
     setVadPendingAudioMap({});
     setBlobDataMap({});
+    setRecordedBlob(null);
   };
 
   return {
@@ -182,6 +187,7 @@ const useRecordingState = (): RecordingState => {
     transcriptData,
     newRecordData,
     blobDataMap,
+    recordedBlob,
     setTranscriptData,
     onRecord,
     onPause,

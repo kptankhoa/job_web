@@ -8,6 +8,7 @@ export interface RecordingState {
   blobDataMap: {
     [key: string]: BlobData
   };
+  recordedBlob: Blob | null;
   setTranscriptData: (value: string) => void;
   onRecord: () => void;
   onPause: () => void;

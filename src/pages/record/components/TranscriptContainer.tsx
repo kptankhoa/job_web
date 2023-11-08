@@ -1,9 +1,10 @@
 import React from 'react';
 import { useRecordingContext } from '../context/RecordingState';
-import { Grid, Typography } from '@mui/material';
+import { Grid, Stack, Typography } from '@mui/material';
 import { Button } from 'components';
 import { BlobData } from '../const';
 import { downloadBlob } from '../util/recording.util';
+import AudioPlayer from './AudioPlayer';
 
 const TranscriptContainer = () => {
   const {
@@ -22,7 +23,7 @@ const TranscriptContainer = () => {
           Transcript parts:
         </Typography>
       </Grid>
-      {Object.values(blobDataMap).map((item: BlobData) => (
+      {Object.values(blobDataMap).reverse().map((item: BlobData) => (
         <Grid
           item
           xs={12}
@@ -30,15 +31,18 @@ const TranscriptContainer = () => {
         >
           <Grid container justifyContent="space-between">
             <Grid item>
-              {`${item.id}: ${item.transcript}`}
+              {`${item.id}: ${item.transcript || '[Empty]'}`}
             </Grid>
             <Grid item>
-              <Button
-                variant="contained"
-                onClick={() => onDownload(item)}
-              >
-                Download
-              </Button>
+              <Stack direction="row" spacing={2}>
+                <AudioPlayer blob={item.blob} />
+                <Button
+                  variant="contained"
+                  onClick={() => onDownload(item)}
+                >
+                  Download Audio
+                </Button>
+              </Stack>
             </Grid>
           </Grid>
         </Grid>

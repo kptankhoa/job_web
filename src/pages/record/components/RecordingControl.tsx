@@ -3,6 +3,8 @@ import { useRecordingContext } from '../context/RecordingState';
 import { RECORDING_STATE } from '../const';
 import { Grid } from '@mui/material';
 import { Button } from 'components';
+import { downloadBlob } from '../util/recording.util';
+import AudioPlayer from './AudioPlayer';
 
 
 const ControlButton = ({
@@ -29,11 +31,20 @@ export interface RecordingControlProps {
 const RecordingControl = () => {
   const {
     recordingState,
+    recordedBlob,
     onRecord,
     onPause,
     onStop,
     onReset,
   } = useRecordingContext();
+
+  const onDownloadRecordBlob = () => {
+    if (!recordedBlob) {
+      return;
+    }
+
+    downloadBlob(recordedBlob, 'recorded.wav');
+  };
 
   if (recordingState === RECORDING_STATE.INIT) {
     return (
@@ -70,6 +81,17 @@ const RecordingControl = () => {
           onClick={onReset}
           name="Clear"
         />
+        {recordedBlob && (
+          <>
+            <ControlButton
+              onClick={onDownloadRecordBlob}
+              name="Download Record"
+            />
+            <Grid item>
+              <AudioPlayer blob={recordedBlob} />
+            </Grid>
+          </>
+        )}
       </Grid>
     </>
   );
