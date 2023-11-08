@@ -10,6 +10,7 @@ export interface RecordingState {
   };
   recordedBlob: Blob | null;
   setTranscriptData: (value: string) => void;
+  onUpload: (url: string) => void;
   onRecord: () => void;
   onPause: () => void;
   onStop: () => void;

@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useRef } from 'react';
 import { useRecordingContext } from '../context/RecordingState';
 import { RECORDING_STATE } from '../const';
 import { Grid } from '@mui/material';
@@ -32,11 +32,14 @@ const RecordingControl = () => {
   const {
     recordingState,
     recordedBlob,
+    onUpload,
     onRecord,
     onPause,
     onStop,
     onReset,
   } = useRecordingContext();
+
+  const inputRef = useRef<HTMLInputElement>(null);
 
   const onDownloadRecordBlob = () => {
     if (!recordedBlob) {
@@ -46,19 +49,37 @@ const RecordingControl = () => {
     downloadBlob(recordedBlob, 'recorded.wav');
   };
 
+  const onFileUploadChange = (e: any) => {
+    const file = e.target.files[0];
+    const url = URL.createObjectURL(file);
+    onUpload(url);
+  };
+
   if (recordingState === RECORDING_STATE.INIT) {
     return (
-      <ControlButton
-        onClick={onRecord}
-        name="Record"
-      />
+      <Grid container spacing={3}>
+        <ControlButton
+          onClick={() => inputRef.current?.click()}
+          name="Upload"
+        />
+        <ControlButton
+          onClick={onRecord}
+          name="Record"
+        />
+        <input
+          type="file"
+          accept="audio/*"
+          ref={inputRef}
+          onChange={onFileUploadChange}
+          style={{ display: 'none' }} // Hide the input element
+        />
+      </Grid>
     );
   }
 
   return (
     <>
-      <Grid container spacing={3}
-      >
+      <Grid container spacing={3}>
         {recordingState === RECORDING_STATE.RECORDING && (
           <ControlButton
             onClick={onPause}

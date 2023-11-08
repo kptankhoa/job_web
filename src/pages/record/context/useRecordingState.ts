@@ -15,7 +15,8 @@ import {
   checkToGetTranscript,
   concatAudioBlob,
   convertToBase64,
-  createRecordRTCAudioStream,
+  createMicRecordRTCAudioStream,
+  createNewRecordRTCFromStream,
   filterByTimestamp,
   sortAscByTimestamp,
 } from '../util/recording.util';
@@ -134,7 +135,7 @@ const useRecordingState = (): RecordingState => {
   }, [newRecordData]);
 
   const initTranscriptAudioStream = () => {
-    createRecordRTCAudioStream({
+    createMicRecordRTCAudioStream({
       attributes: {
         timeSlice: VAD_STREAM_TIME_SLICE,
         ondataavailable: setNewAudioBlob
@@ -142,6 +143,26 @@ const useRecordingState = (): RecordingState => {
       setRecordRTC,
       mapNewStream
     });
+  };
+
+  const onUpload = (url: string) => {
+    const audio = new Audio(url);
+    const ctx = new window.AudioContext();
+    const stream_dest = ctx.createMediaStreamDestination();
+    const source = ctx.createMediaElementSource(audio);
+    source.connect(stream_dest);
+
+    const stream = stream_dest.stream;
+    createNewRecordRTCFromStream(stream, {
+      attributes: {
+        timeSlice: VAD_STREAM_TIME_SLICE,
+        ondataavailable: setNewAudioBlob
+      },
+      setRecordRTC,
+      mapNewStream
+    });
+    audio.play();
+    setRecordingState(RECORDING_STATE.RECORDING);
   };
 
   const onRecord = () => {
@@ -189,6 +210,7 @@ const useRecordingState = (): RecordingState => {
     blobDataMap,
     recordedBlob,
     setTranscriptData,
+    onUpload,
     onRecord,
     onPause,
     onStop,

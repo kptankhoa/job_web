@@ -8,28 +8,32 @@ import {
   RECORDING_TYPE
 } from '../const';
 
-export const createRecordRTCAudioStream = ({ attributes, setRecordRTC, mapNewStream }: CreateAudioStream) => {
+export const createMicRecordRTCAudioStream = (options: CreateAudioStream) => {
   navigator.mediaDevices.getUserMedia({
     audio: true
   })
     .then((stream: MediaStream) => {
-      const newStreamId = Date.now().toString();
-      const currentRecordAudio = new RecordRTC(stream, {
-        type: 'audio',
-        mimeType: 'audio/wav',
-        recorderType: StereoAudioRecorder,
-        desiredSampRate: 16000,
-        numberOfAudioChannels: 2,
-        ...attributes
-      });
-      setRecordRTC(currentRecordAudio);
-      currentRecordAudio.startRecording();
-      mapNewStream(newStreamId, stream);
+      createNewRecordRTCFromStream(stream, options);
     })
     .catch((error: Error) => {
-      setRecordRTC(null);
+      options.setRecordRTC(null);
       console.error(JSON.stringify(error));
     });
+};
+
+export const createNewRecordRTCFromStream = (stream: MediaStream, { attributes, setRecordRTC, mapNewStream }: CreateAudioStream) => {
+  const newStreamId = Date.now().toString();
+  const currentRecordAudio = new RecordRTC(stream, {
+    type: 'audio',
+    mimeType: 'audio/wav',
+    recorderType: StereoAudioRecorder,
+    desiredSampRate: 16000,
+    numberOfAudioChannels: 2,
+    ...attributes
+  });
+  setRecordRTC(currentRecordAudio);
+  currentRecordAudio.startRecording();
+  mapNewStream(newStreamId, stream);
 };
 
 export const sortAscByTimestamp = (data: RecordData[]) => data
