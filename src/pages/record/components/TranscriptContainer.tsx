@@ -31,7 +31,9 @@ const TranscriptContainer = () => {
         >
           <Grid container justifyContent="space-between">
             <Grid item>
-              {`${item.id}: ${item.transcript || '[Empty]'}`}
+              <Typography>
+                {`${item.id}: ${item.transcript || '[Empty]'}`}
+              </Typography>
             </Grid>
             <Grid item>
               <Stack direction="row" spacing={2}>
