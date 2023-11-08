@@ -33,7 +33,7 @@ const useRecordingState = (): RecordingState => {
   const [silenceCounter, setSilenceCounter] = useState<number>(0);
   const [blobDataMap, setBlobDataMap] = useState<{ [key: string]: BlobData }>({});
   const [recordedBlob, setRecordedBlob] = useState<Blob | null>(null);
-  const { mapNewStream, stopAllStreamData } = useHandleMediaStream();
+  const { mapNewStream, stopAllMediaStream } = useHandleMediaStream();
 
   const onVadSocketMessage = (e: MessageEvent) => {
     setVadPendingAudioMap((oldValue) => {
@@ -170,7 +170,7 @@ const useRecordingState = (): RecordingState => {
 
       return value;
     });
-    stopAllStreamData();
+    stopAllMediaStream();
     setRecordingState(RECORDING_STATE.STOPPED);
   };
 
@@ -202,7 +202,7 @@ const useRecordingState = (): RecordingState => {
   const onReset = () => {
     recordRTC?.stopRecording();
     setRecordRTC(null);
-    stopAllStreamData();
+    stopAllMediaStream();
     setTranscriptData('');
     setRecordingState(RECORDING_STATE.INIT);
     setRecordDataList([]);

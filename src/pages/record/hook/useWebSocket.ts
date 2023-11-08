@@ -45,6 +45,8 @@ const useWebSocket = (
     } else if (recordingState === RECORDING_STATE.STOPPED || recordingState === RECORDING_STATE.INIT) {
       onClose();
     }
+
+    return onClose;
   }, [recordingState, socket]);
 
   return {

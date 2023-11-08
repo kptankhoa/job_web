@@ -37,7 +37,7 @@ const router = createBrowserRouter(
     },
     {
       path: 'record',
-      element: <ReportRecording />,
+      element: withPrivateRoute(<ReportRecording />),
       errorElement: <ErrorPage />
     },
     {

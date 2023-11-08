@@ -1,31 +1,30 @@
 import { useEffect, useState } from 'react';
 
 const useHandleMediaStream = () => {
-  const [, setActiveStreamMap] = useState<{[id: string]: MediaStream}>({});
+  const [activatedStreamMap, setActiveStreamMap] = useState<{[id: string]: MediaStream}>({});
 
   const mapNewStream = (id: string, stream: MediaStream) => {
     setActiveStreamMap((oldStreams) => ({ ...oldStreams, [id]: stream }));
   };
 
-  const stopStreamById = (stream: MediaStream) => {
+  const stopStreamTracks = (stream: MediaStream) => {
     stream.getTracks().forEach((track) => {
       track?.stop();
     });
   };
 
-  const stopAllStreamData = () => {
-    setActiveStreamMap((value) => {
-      Object.values(value).forEach(stopStreamById);
-
-      return {};
-    });
+  const stopAllMediaStream = () => {
+    Object.values(activatedStreamMap).forEach(stopStreamTracks);
+    setActiveStreamMap({});
   };
 
-  useEffect(() => () => stopAllStreamData(), []);
+  useEffect(() => () => {
+    Object.values(activatedStreamMap).forEach(stopStreamTracks);
+  }, [activatedStreamMap]);
 
   return {
     mapNewStream,
-    stopAllStreamData
+    stopAllMediaStream
   };
 };
 

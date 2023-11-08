@@ -38,6 +38,8 @@ rules:
     - error
   react-hooks/exhaustive-deps:
     - off
+  '@typescript-eslint/ban-ts-comment':
+     - off
 settings:
   import/resolver:
     typescript: true

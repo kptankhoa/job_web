@@ -1,6 +1,8 @@
 import React, { ReactNode } from 'react';
-import { Grid, useTheme } from '@mui/material';
+import { Box, Grid, useTheme } from '@mui/material';
 import Header from '../header';
+import { useNavigate } from 'react-router-dom';
+import { Button } from '../index';
 
 interface Props {
   pageTitle: string;
@@ -9,6 +11,7 @@ interface Props {
 
 const HeaderPageContainer = ({ pageTitle, children }: Props) => {
   const theme = useTheme();
+  const navigate = useNavigate();
 
   return (
     <div
@@ -20,6 +23,16 @@ const HeaderPageContainer = ({ pageTitle, children }: Props) => {
         background: theme.background.default
       }}
     >
+      <Box sx={{ display: 'flex', background: theme.background.header }}>
+        <Button
+          color="primary"
+          onClick={() => navigate('/')}
+          style={{ marginTop: 10, width: 200, color: 'white' }}
+        >
+          Home
+        </Button>
+      </Box>
+
       <Header title={pageTitle}/>
       <Grid
         container
