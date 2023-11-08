@@ -5,9 +5,14 @@ const AudioPlayer = ({ blob }: { blob: Blob }) => {
   const [audio, setAudio] = useState<HTMLAudioElement | null>(null);
   const onPlay = () => {
     const url = URL.createObjectURL(blob);
-    const audio = new Audio(url);
-    audio.play();
-    setAudio(audio);
+    const newAudio = new Audio(url);
+    newAudio.onended = () => {
+      newAudio.pause();
+      newAudio.remove();
+      setAudio(null);
+    };
+    newAudio.play();
+    setAudio(newAudio);
   };
   const onStop = () => {
     if (audio) {

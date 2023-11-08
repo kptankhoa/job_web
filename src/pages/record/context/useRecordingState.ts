@@ -145,6 +145,35 @@ const useRecordingState = (): RecordingState => {
     });
   };
 
+  const onRecord = () => {
+    if (recordRTC) {
+      recordRTC.resumeRecording();
+    } else {
+      initTranscriptAudioStream();
+    }
+    setRecordingState(RECORDING_STATE.RECORDING);
+  };
+
+  const onPause = () => {
+    recordRTC?.pauseRecording();
+    setRecordingState(RECORDING_STATE.PAUSED);
+  };
+
+  const onStop = () => {
+    setRecordRTC((value) => {
+      if (value) {
+        value?.stopRecording(() => {
+          const newBlob = value.getBlob();
+          setRecordedBlob(newBlob);
+        });
+      }
+
+      return value;
+    });
+    stopAllStreamData();
+    setRecordingState(RECORDING_STATE.STOPPED);
+  };
+
   const onUpload = (url: string) => {
     const audio = new Audio(url);
     const ctx = new window.AudioContext();
@@ -162,32 +191,13 @@ const useRecordingState = (): RecordingState => {
       mapNewStream
     });
     audio.play();
+    audio.onended = () => {
+      audio.pause();
+      audio.remove();
+      onStop();
+    };
     setRecordingState(RECORDING_STATE.RECORDING);
   };
-
-  const onRecord = () => {
-    if (recordRTC) {
-      recordRTC.resumeRecording();
-    } else {
-      initTranscriptAudioStream();
-    }
-    setRecordingState(RECORDING_STATE.RECORDING);
-  };
-
-  const onPause = () => {
-    recordRTC?.pauseRecording();
-    setRecordingState(RECORDING_STATE.PAUSED);
-  };
-
-  const onStop = () => {
-    recordRTC?.stopRecording(() => {
-      const newBlob = recordRTC.getBlob();
-      setRecordedBlob(newBlob);
-    });
-    stopAllStreamData();
-    setRecordingState(RECORDING_STATE.STOPPED);
-  };
-
 
   const onReset = () => {
     recordRTC?.stopRecording();
