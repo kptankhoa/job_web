@@ -1,13 +1,13 @@
 import React, { ReactElement } from 'react';
 import { RecordingContext } from '../context/RecordingState';
-import useRecordingStateStream from '../context/useRecordingStateStream';
+import useRecordingState from '../context/useRecordingState';
 
 interface Props {
   children: ReactElement;
 }
 
 const RecordingProvider = ({ children }: Props) => (
-  <RecordingContext.Provider value={useRecordingStateStream()}>
+  <RecordingContext.Provider value={useRecordingState()}>
     {children}
   </RecordingContext.Provider>
 );
