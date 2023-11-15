@@ -45,3 +45,5 @@ export const NO_VOICE_DETECTION_CHARACTER_OCCURRENCES = 20;
 export const SILENCE_COUNTER_LIMIT = 3;
 
 export const SPEECH_TO_TEXT_WS = 'wss://api-draid.aiscaler.net/speech2text-service';
+
+export const API_SENME_PLUGIN_WSS = 'wss://senme-plugin-beta.aiscaler.net';

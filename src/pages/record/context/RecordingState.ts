@@ -1,10 +1,9 @@
 import { createContext, useContext } from 'react';
-import { BlobData, RecordData, RECORDING_STATE } from '../const';
+import { BlobData, RECORDING_STATE } from '../const';
 
 export interface RecordingState {
   recordingState: RECORDING_STATE;
   transcriptData: string;
-  newRecordData: RecordData | null;
   blobDataMap: {
     [key: string]: BlobData
   };

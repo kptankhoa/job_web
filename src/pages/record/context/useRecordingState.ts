@@ -62,9 +62,16 @@ const useRecordingState = (): RecordingState => {
       return value;
     });
   };
-  const vadSocket = useWebSocket(`${SPEECH_TO_TEXT_WS}/ws/vad`, recordingState, onVadSocketMessage);
-  const transcribeSocket = useWebSocket(`${SPEECH_TO_TEXT_WS}/ws/transcribe`, recordingState, onTranscribeSocketMessage);
-
+  const vadSocket = useWebSocket({
+    endpoint: `${SPEECH_TO_TEXT_WS}/ws/vad`,
+    recordingState,
+    messageHandler: onVadSocketMessage
+  });
+  const transcribeSocket = useWebSocket({
+    endpoint: `${SPEECH_TO_TEXT_WS}/ws/transcribe`,
+    recordingState,
+    messageHandler: onTranscribeSocketMessage
+  });
   const getTranscriptFromRecordData = async (data: RecordData[]) => {
     const audioBlobs = data.map((item) => item.blob);
     const concatenatedBlob = await concatAudioBlob(audioBlobs);
@@ -78,7 +85,7 @@ const useRecordingState = (): RecordingState => {
           id,
           audio_data: base64
         };
-        transcribeSocket.getSocket().send(JSON.stringify(audioData));
+        transcribeSocket.send(audioData);
         setRecordDataList(filterByTimestamp(data, data[data.length - 1].timestamp + 1));
         setSilenceCounter(0);
       };
@@ -95,9 +102,7 @@ const useRecordingState = (): RecordingState => {
         id: timestamp,
         audio_data: base64
       };
-      if (vadSocket.getSocket()?.readyState === WS_STATE.OPEN) {
-        vadSocket.getSocket().send(JSON.stringify(data));
-      }
+      vadSocket.send(data);
       const newRD: RecordData = {
         timestamp,
         vad: [],
@@ -216,7 +221,6 @@ const useRecordingState = (): RecordingState => {
   return {
     recordingState,
     transcriptData,
-    newRecordData,
     blobDataMap,
     recordedBlob,
     setTranscriptData,

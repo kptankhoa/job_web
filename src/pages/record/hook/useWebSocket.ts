@@ -4,19 +4,34 @@ import { RECORDING_STATE, WS_STATE } from '../const';
 interface UseWebSocket {
   getSocket: () => WebSocket;
   init: () => any;
-  onClose: () => void;
+  send: (data: object | string) => void;
+  close: () => void;
 }
 
-const useWebSocket = (
+interface Props {
   endpoint: string,
   recordingState: RECORDING_STATE,
-  messageHandler: (e: MessageEvent) => any
-): UseWebSocket => {
+  messageHandler: (e: MessageEvent) => any,
+  onOpen?: (s: WebSocket) => void
+}
+const useWebSocket = ({
+  endpoint,
+  recordingState,
+  messageHandler,
+  onOpen
+}: Props): UseWebSocket => {
   const [socket, setSocket] = useState<WebSocket | null>(null);
 
   const init = () => {
     const newSocket = new WebSocket(endpoint);
     newSocket.onmessage = messageHandler;
+    newSocket.onopen = () => {
+      if (!onOpen) {
+        return;
+      }
+      onOpen(newSocket);
+    };
+
     setSocket(newSocket);
 
     return newSocket;
@@ -30,7 +45,13 @@ const useWebSocket = (
     return socket;
   };
 
-  const onClose = () => {
+  const send = (body: object | string) => {
+    if (socket?.readyState === WS_STATE.OPEN) {
+      socket.send(JSON.stringify(body));
+    }
+  };
+
+  const close = () => {
     if (!socket) {
       return;
     }
@@ -42,17 +63,22 @@ const useWebSocket = (
     if (recordingState === RECORDING_STATE.RECORDING
       && (!socket || socket.readyState === WS_STATE.CLOSING || socket.readyState === WS_STATE.CLOSED)) {
       init();
-    } else if (recordingState === RECORDING_STATE.STOPPED || recordingState === RECORDING_STATE.INIT) {
-      onClose();
+    } else if (recordingState === RECORDING_STATE.INIT) {
+      close();
     }
-
-    return onClose;
   }, [recordingState, socket]);
+
+  useEffect(() => () => {
+    if (socket) {
+      socket.close();
+    }
+  }, [socket]);
 
   return {
     getSocket,
     init,
-    onClose
+    send,
+    close
   };
 };
 
