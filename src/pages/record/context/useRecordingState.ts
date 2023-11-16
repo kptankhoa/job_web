@@ -1,24 +1,22 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import RecordRTC from 'recordrtc';
 import { RecordingState } from './RecordingState';
 import {
   RecordData,
   RECORDING_STATE,
-  SILENCE_COUNTER_LIMIT,
   VAD_STREAM_TIME_SLICE,
   SPEECH_TO_TEXT_WS,
   WS_STATE,
-  BlobData
+  BlobData,
+  NON_SPEECH_THRESHOLD,
+  PRE_SPEECH_BUFFER
 } from '../const';
 import {
-  checkLegitVAD,
-  checkToGetTranscript,
+  splitAudioBlob,
   concatAudioBlob,
   convertToBase64,
   createMicRecordRTCAudioStream,
-  createNewRecordRTCFromStream,
-  filterByTimestamp,
-  sortAscByTimestamp,
+  createNewRecordRTCFromStream
 } from '../util/recording.util';
 import { useHandleMediaStream, useWebSocket } from '../hook';
 
@@ -33,6 +31,10 @@ const useRecordingState = (): RecordingState => {
   const [silenceCounter, setSilenceCounter] = useState<number>(0);
   const [blobDataMap, setBlobDataMap] = useState<{ [key: string]: BlobData }>({});
   const [recordedBlob, setRecordedBlob] = useState<Blob | null>(null);
+  const [blobBuffers, setBlobBuffers] = useState<Blob[]>([]);
+  const zeroSpanLength = useRef<number>(0);
+  const isSpeech = useRef<boolean>(false);
+  const containsSpeech = useRef<boolean>(false);
   const { mapNewStream, stopAllMediaStream } = useHandleMediaStream();
 
   const onVadSocketMessage = (e: MessageEvent) => {
@@ -62,6 +64,7 @@ const useRecordingState = (): RecordingState => {
       return value;
     });
   };
+
   const vadSocket = useWebSocket({
     endpoint: `${SPEECH_TO_TEXT_WS}/ws/vad`,
     recordingState,
@@ -72,13 +75,36 @@ const useRecordingState = (): RecordingState => {
     recordingState,
     messageHandler: onTranscribeSocketMessage
   });
-  const getTranscriptFromRecordData = async (data: RecordData[]) => {
-    const audioBlobs = data.map((item) => item.blob);
-    const concatenatedBlob = await concatAudioBlob(audioBlobs);
+
+  // const getTranscriptFromRecordData = async (data: RecordData[]) => {
+  //   const audioBlobs = data.map((item) => item.blob);
+  //   const concatenatedBlob = await concatAudioBlob(audioBlobs);
+  //   if (concatenatedBlob && transcribeSocket.getSocket()?.readyState === WS_STATE.OPEN) {
+  //     const id = Date.now();
+  //     setBlobDataMap((oldData) => ({
+  //       ...oldData, [id]: { id, blob: concatenatedBlob, transcript: '' }
+  //     }));
+  //     const convertBase64Callback = (base64: string) => {
+  //       const audioData = {
+  //         id,
+  //         audio_data: base64
+  //       };
+  //       transcribeSocket.send(audioData);
+  //       setRecordDataList(filterByTimestamp(data, data[data.length - 1].timestamp + 1));
+  //       setSilenceCounter(0);
+  //     };
+  //     convertToBase64(concatenatedBlob, convertBase64Callback);
+  //   } else {
+  //     setRecordDataList(data);
+  //   }
+  // };
+
+  const getTranscribeFromBlobs = async (blobs: Blob[]) => {
+    const concatenatedBlob = await concatAudioBlob(blobs);
     if (concatenatedBlob && transcribeSocket.getSocket()?.readyState === WS_STATE.OPEN) {
       const id = Date.now();
       setBlobDataMap((oldData) => ({
-        ...oldData, [id]: { id, blob: concatenatedBlob, transcript: '' }
+        ...oldData, [id]: { id, blob: concatenatedBlob, transcript: null }
       }));
       const convertBase64Callback = (base64: string) => {
         const audioData = {
@@ -86,12 +112,8 @@ const useRecordingState = (): RecordingState => {
           audio_data: base64
         };
         transcribeSocket.send(audioData);
-        setRecordDataList(filterByTimestamp(data, data[data.length - 1].timestamp + 1));
-        setSilenceCounter(0);
       };
       convertToBase64(concatenatedBlob, convertBase64Callback);
-    } else {
-      setRecordDataList(data);
     }
   };
 
@@ -113,6 +135,52 @@ const useRecordingState = (): RecordingState => {
     convertToBase64(blob, convertBase64Callback);
   };
 
+  const handleNewRecordData = async (newRD: RecordData) => {
+    const audioBlob = newRD.blob;
+    const vadResult = newRD.vad || [];
+    const splitBlobs = await splitAudioBlob(audioBlob);
+    const loopLength = Math.min(splitBlobs.length, vadResult.length);
+    setBlobBuffers((buffers) => {
+      const newBuffers = [...buffers];
+      for (let i = 0; i <= loopLength; i++) {
+        newBuffers.push(splitBlobs[i]);
+        if (vadResult[i] === 0) {
+          zeroSpanLength.current = zeroSpanLength.current + 1;
+          if (isSpeech.current) {
+            isSpeech.current = false;
+          }
+          if (containsSpeech.current) {
+            if (zeroSpanLength.current > NON_SPEECH_THRESHOLD) {
+              const postSpeechBuffer = newBuffers.splice(PRE_SPEECH_BUFFER);
+              const speechSpan = newBuffers;
+              newBuffers.length = 0;
+              newBuffers.push(...postSpeechBuffer);
+              console.log(speechSpan);
+              if (speechSpan.length) {
+                getTranscribeFromBlobs(speechSpan);
+              }
+              containsSpeech.current = false;
+            }
+          } else {
+            if (newBuffers.length > PRE_SPEECH_BUFFER) {
+              const postSpeechBuffer = newBuffers.splice(-PRE_SPEECH_BUFFER);
+              newBuffers.length = 0;
+              newBuffers.push(...postSpeechBuffer);
+            }
+          }
+        } else {
+          if (!isSpeech.current) {
+            isSpeech.current = true;
+            containsSpeech.current = true;
+            zeroSpanLength.current = 0;
+          }
+        }
+      }
+
+      return newBuffers;
+    });
+  };
+
   useEffect(() => {
     if (!newAudioBlob) {
       return;
@@ -122,21 +190,10 @@ const useRecordingState = (): RecordingState => {
   }, [newAudioBlob]);
 
   useEffect(() => {
-    if (!newRecordData || !checkLegitVAD(newRecordData)) {
-      if (silenceCounter >= SILENCE_COUNTER_LIMIT && recordDataList.length) {
-        getTranscriptFromRecordData(recordDataList);
-      } else {
-        setSilenceCounter((oldValue) => oldValue + 1);
-      }
-
+    if (!newRecordData?.blob) {
       return;
     }
-    const newDataSorted = sortAscByTimestamp([...recordDataList, newRecordData]);
-    if (checkToGetTranscript(newDataSorted)) {
-      getTranscriptFromRecordData(newDataSorted);
-    } else {
-      setRecordDataList(newDataSorted);
-    }
+    handleNewRecordData(newRecordData);
   }, [newRecordData]);
 
   const initTranscriptAudioStream = () => {

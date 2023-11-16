@@ -4,8 +4,7 @@ import {
   LEGIT_VAD_VOICE_DETECTED_CHARACTERS,
   NO_VOICE_DETECTION_CHARACTER,
   NO_VOICE_DETECTION_CHARACTER_OCCURRENCES,
-  RecordData,
-  RECORDING_TYPE
+  RecordData
 } from '../const';
 
 export const createMicRecordRTCAudioStream = (options: CreateAudioStream) => {
@@ -52,18 +51,49 @@ export const checkToGetTranscript = (data: RecordData[]) => {
 
 export const checkLegitVAD = (data: RecordData) => data.vad.filter((v) => v === 1).length >= LEGIT_VAD_VOICE_DETECTED_CHARACTERS;
 
-export const getRecordingType = (): RECORDING_TYPE | null => {
-
-  return RECORDING_TYPE.CT;
-};
-
-export const getTranscriptBlob = ({ original, edited, tc }: any): Blob => {
-  const blobContent = `Original: ${original}\nEdited: ${edited}\nTC: ${tc}`;
-
-  return new Blob([blobContent], { type: 'text/plain ' });
-};
-
 const audioContext = new AudioContext();
+
+const getBlobFromChunkData = (left: Float32Array, right: Float32Array) => {
+  const interleaved = new Float32Array(left.length + right.length);
+  for (let src = 0, dst = 0; src < left.length; src++, dst += 2) {
+    interleaved[dst] = left[src];
+    interleaved[dst + 1] = right[src];
+  }
+  const wavBytes = getWavBytes(interleaved.buffer, {
+    isFloat: true,
+    numChannels: 2,
+    sampleRate: 48000
+  });
+
+  return new Blob([wavBytes], { type: 'audio/wav' });
+};
+
+export const chunkAudioToBlobs = (
+  buffer: { left: Float32Array, right: Float32Array},
+  chunkSize: number
+): Blob[] => {
+  const { left, right } = buffer;
+
+  const chunkArray = (array: Float32Array): Float32Array[] => {
+    const result: Float32Array[] = [];
+    for (let i = 0; i < array.length; i += chunkSize) {
+      result.push(array.subarray(i, i + chunkSize));
+    }
+
+    return result;
+  };
+
+  const leftChunks = chunkArray(left);
+  const rightChunks = chunkArray(right);
+
+  const blobs: Blob[] = [];
+
+  for (let i = 0; i < leftChunks.length; i++) {
+    blobs.push(getBlobFromChunkData(leftChunks[i], rightChunks[i]));
+  }
+
+  return blobs;
+};
 
 const createAudioBufferFromBlob = async (audioBlob: Blob): Promise<AudioBuffer | null> => {
   try {
@@ -176,6 +206,19 @@ export function audioBufferToBlob(audioBuffer: AudioBuffer): Blob {
 
   return new Blob([wavBytes], { type: 'audio/wav' });
 }
+
+export const splitAudioBlob = async (blob: Blob): Promise<Blob[]> => {
+  const arrayBuffer: ArrayBuffer = await blob.arrayBuffer();
+  const audioBuffer: AudioBuffer = await audioContext.decodeAudioData(arrayBuffer);
+
+  // split into blobs
+  const blobs = chunkAudioToBlobs({
+    left: audioBuffer.getChannelData(0),
+    right: audioBuffer.getChannelData(1),
+  }, audioBuffer.sampleRate / 100); //1s = 1000ms = 100 chunks
+
+  return blobs;
+};
 
 export const concatAudioBlob = async (blobs: Blob[]): Promise<Blob> => {
   const audioBuffers = await Promise.all(blobs.map(createAudioBufferFromBlob));

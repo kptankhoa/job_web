@@ -148,10 +148,6 @@ const useRecordingStateStream = (): RecordingState => {
     setRecordingState(RECORDING_STATE.STOPPED);
   };
 
-  const onGenerateReport = () => {
-    setRecordingState(RECORDING_STATE.GENERATING_REPORT);
-  };
-
   const onReset = () => {
     recordRTC?.stopRecording();
     setRecordRTC(null);

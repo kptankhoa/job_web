@@ -6,7 +6,6 @@ import { Button } from 'components';
 import { downloadBlob } from '../util/recording.util';
 import AudioPlayer from './AudioPlayer';
 
-
 const ControlButton = ({
   onClick, name, disabled
 }: any) => (
@@ -22,11 +21,6 @@ const ControlButton = ({
     </Button>
   </Grid>
 );
-
-export interface RecordingControlProps {
-  dragging: boolean;
-  setDisabledDragging: (value: boolean) => void;
-}
 
 const RecordingControl = () => {
   const {
