@@ -9,7 +9,12 @@ import {
   WS_STATE,
   BlobData,
   NON_SPEECH_THRESHOLD,
-  PRE_SPEECH_BUFFER
+  PRE_SPEECH_BUFFER,
+  POST_SPEECH_BUFFER,
+  UNIT,
+  VAD_DELAY,
+  MIN_AUDIO_UNIT,
+  PAUSE_TIME
 } from '../const';
 import {
   splitAudioBlob,
@@ -142,6 +147,7 @@ const useRecordingState = (): RecordingState => {
     const loopLength = Math.min(splitBlobs.length, vadResult.length);
     setBlobBuffers((buffers) => {
       const newBuffers = [...buffers];
+      
       for (let i = 0; i <= loopLength; i++) {
         newBuffers.push(splitBlobs[i]);
         if (vadResult[i] === 0) {
@@ -151,19 +157,23 @@ const useRecordingState = (): RecordingState => {
           }
           if (containsSpeech.current) {
             if (zeroSpanLength.current > NON_SPEECH_THRESHOLD) {
-              const postSpeechBuffer = newBuffers.splice(PRE_SPEECH_BUFFER);
-              const speechSpan = newBuffers;
-              newBuffers.length = 0;
-              newBuffers.push(...postSpeechBuffer);
-              console.log(speechSpan);
-              if (speechSpan.length) {
-                getTranscribeFromBlobs(speechSpan);
+              if (newBuffers.length >  MIN_AUDIO_UNIT) {
+                console.log(newBuffers.length);
+                console.log(zeroSpanLength.current);
+                // speech_span = self.speech_buff[:-self.unit * (self.zero_span_length - self.post_speech_buffer)]
+                const postSpeechBuffer = newBuffers.slice(PRE_SPEECH_BUFFER + VAD_DELAY);
+                const speechSpan = newBuffers.slice(0, -(zeroSpanLength.current - POST_SPEECH_BUFFER));
+                if (speechSpan.length) {
+                  getTranscribeFromBlobs(speechSpan);
+                }
+                newBuffers.length = 0;
+                newBuffers.push(...postSpeechBuffer);
+                containsSpeech.current = false;
               }
-              containsSpeech.current = false;
             }
           } else {
-            if (newBuffers.length > PRE_SPEECH_BUFFER) {
-              const postSpeechBuffer = newBuffers.splice(-PRE_SPEECH_BUFFER);
+            if (newBuffers.length > PRE_SPEECH_BUFFER + VAD_DELAY) {
+              const postSpeechBuffer = newBuffers.slice(-(PRE_SPEECH_BUFFER + VAD_DELAY));
               newBuffers.length = 0;
               newBuffers.push(...postSpeechBuffer);
             }

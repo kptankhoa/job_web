@@ -227,7 +227,6 @@ export function audioBufferToBlob(audioBuffer: AudioBuffer): Blob {
 export const splitAudioBlob = async (blob: Blob): Promise<Blob[]> => {
   const arrayBuffer: ArrayBuffer = await blob.arrayBuffer();
   const audioBuffer: AudioBuffer = await audioContext.decodeAudioData(arrayBuffer);
-
   // split into blobs
   const blobs = chunkAudioToBlobs({
     left: audioBuffer.getChannelData(0),
