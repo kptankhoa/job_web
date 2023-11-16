@@ -95,12 +95,29 @@ export const chunkAudioToBlobs = (
   return blobs;
 };
 
+const resampleAudioBuffer = async (audioBuffer: AudioBuffer, desiredSampleRate: number): Promise<AudioBuffer> => {
+  const offlineCtx = new OfflineAudioContext(
+    audioBuffer.numberOfChannels,
+    audioBuffer.duration * desiredSampleRate,
+    desiredSampleRate);
+
+  // Play it from the beginning.
+  const offlineSource = offlineCtx.createBufferSource();
+  offlineSource.buffer = audioBuffer;
+  offlineSource.connect(offlineCtx.destination);
+  offlineSource.start();
+  const resampled = await offlineCtx.startRendering();
+
+  return resampled;
+};
+
 const createAudioBufferFromBlob = async (audioBlob: Blob): Promise<AudioBuffer | null> => {
   try {
     const arrayBuffer: ArrayBuffer = await audioBlob.arrayBuffer();
     const audioBuffer: AudioBuffer = await audioContext.decodeAudioData(arrayBuffer);
+    const resampled: AudioBuffer = await resampleAudioBuffer(audioBuffer, 16000);
 
-    return audioBuffer;
+    return resampled;
   } catch (error) {
     console.error('Error decoding audio data:', error);
 
@@ -131,7 +148,7 @@ const concatenateAudioBuffers = (audioBuffers: AudioBuffer[]): AudioBuffer => {
 function getWavHeader(options: any) {
   const { numFrames } = options;
   const numChannels = options.numChannels || 2;
-  const sampleRate = options.sampleRate || 44100;
+  const sampleRate = options.sampleRate || 16000;
   const bytesPerSample = options.isFloat ? 4 : 2;
   const format = options.isFloat ? 3 : 1;
 
@@ -201,7 +218,7 @@ export function audioBufferToBlob(audioBuffer: AudioBuffer): Blob {
   const wavBytes = getWavBytes(interleaved.buffer, {
     isFloat: true,
     numChannels: 2,
-    sampleRate: 48000
+    sampleRate: 16000
   });
 
   return new Blob([wavBytes], { type: 'audio/wav' });
