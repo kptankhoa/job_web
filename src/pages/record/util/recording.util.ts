@@ -62,7 +62,7 @@ const getBlobFromChunkData = (left: Float32Array, right: Float32Array) => {
   const wavBytes = getWavBytes(interleaved.buffer, {
     isFloat: true,
     numChannels: 2,
-    sampleRate: 48000
+    sampleRate: 16000
   });
 
   return new Blob([wavBytes], { type: 'audio/wav' });
@@ -96,6 +96,9 @@ export const chunkAudioToBlobs = (
 };
 
 const resampleAudioBuffer = async (audioBuffer: AudioBuffer, desiredSampleRate: number): Promise<AudioBuffer> => {
+  if (audioBuffer.sampleRate === desiredSampleRate) {
+    return audioBuffer;
+  }
   const offlineCtx = new OfflineAudioContext(
     audioBuffer.numberOfChannels,
     audioBuffer.duration * desiredSampleRate,
@@ -210,28 +213,31 @@ function getWavBytes(buffer: any, options: any) {
 export function audioBufferToBlob(audioBuffer: AudioBuffer): Blob {
   const [left, right] = [audioBuffer.getChannelData(0), audioBuffer.getChannelData(1)];
 
-  const interleaved = new Float32Array(left.length + right.length);
-  for (let src = 0, dst = 0; src < left.length; src++, dst += 2) {
-    interleaved[dst] = left[src];
-    interleaved[dst + 1] = right[src];
-  }
-  const wavBytes = getWavBytes(interleaved.buffer, {
-    isFloat: true,
-    numChannels: 2,
-    sampleRate: 16000
-  });
-
-  return new Blob([wavBytes], { type: 'audio/wav' });
+  return getBlobFromChunkData(left, right);
+  // const interleaved = new Float32Array(left.length + right.length);
+  // for (let src = 0, dst = 0; src < left.length; src++, dst += 2) {
+  //   interleaved[dst] = left[src];
+  //   interleaved[dst + 1] = right[src];
+  // }
+  // const wavBytes = getWavBytes(interleaved.buffer, {
+  //   isFloat: true,
+  //   numChannels: 2,
+  //   sampleRate: 16000
+  // });
+  //
+  // return new Blob([wavBytes], { type: 'audio/wav' });
 }
 
 export const splitAudioBlob = async (blob: Blob): Promise<Blob[]> => {
   const arrayBuffer: ArrayBuffer = await blob.arrayBuffer();
   const audioBuffer: AudioBuffer = await audioContext.decodeAudioData(arrayBuffer);
+  const resampled: AudioBuffer = await resampleAudioBuffer(audioBuffer, 16000);
+
   // split into blobs
   const blobs = chunkAudioToBlobs({
-    left: audioBuffer.getChannelData(0),
-    right: audioBuffer.getChannelData(1),
-  }, audioBuffer.sampleRate / 100); //1s = 1000ms = 100 chunks
+    left: resampled.getChannelData(0),
+    right: resampled.getChannelData(1),
+  }, resampled.sampleRate / 100); //1s = 1000ms = 100 chunks
 
   return blobs;
 };

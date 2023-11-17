@@ -147,7 +147,7 @@ const useRecordingState = (): RecordingState => {
     const loopLength = Math.min(splitBlobs.length, vadResult.length);
     setBlobBuffers((buffers) => {
       const newBuffers = [...buffers];
-      
+
       for (let i = 0; i <= loopLength; i++) {
         newBuffers.push(splitBlobs[i]);
         if (vadResult[i] === 0) {
