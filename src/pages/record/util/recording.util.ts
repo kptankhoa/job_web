@@ -53,7 +53,7 @@ export const checkLegitVAD = (data: RecordData) => data.vad.filter((v) => v === 
 
 const audioContext = new AudioContext();
 
-const getBlobFromChunkData = (left: Float32Array, right: Float32Array) => {
+const getBlobFromChunkData = (left: Float32Array, right: Float32Array, sampleRate = 16000) => {
   const interleaved = new Float32Array(left.length + right.length);
   for (let src = 0, dst = 0; src < left.length; src++, dst += 2) {
     interleaved[dst] = left[src];
@@ -62,7 +62,7 @@ const getBlobFromChunkData = (left: Float32Array, right: Float32Array) => {
   const wavBytes = getWavBytes(interleaved.buffer, {
     isFloat: true,
     numChannels: 2,
-    sampleRate: 16000
+    sampleRate: sampleRate
   });
 
   return new Blob([wavBytes], { type: 'audio/wav' });
@@ -70,7 +70,8 @@ const getBlobFromChunkData = (left: Float32Array, right: Float32Array) => {
 
 export const chunkAudioToBlobs = (
   buffer: { left: Float32Array, right: Float32Array},
-  chunkSize: number
+  chunkSize: number,
+  sampleRate = 16000
 ): Blob[] => {
   const { left, right } = buffer;
 
@@ -89,7 +90,7 @@ export const chunkAudioToBlobs = (
   const blobs: Blob[] = [];
 
   for (let i = 0; i < leftChunks.length; i++) {
-    blobs.push(getBlobFromChunkData(leftChunks[i], rightChunks[i]));
+    blobs.push(getBlobFromChunkData(leftChunks[i], rightChunks[i], sampleRate));
   }
 
   return blobs;
@@ -118,9 +119,8 @@ const createAudioBufferFromBlob = async (audioBlob: Blob): Promise<AudioBuffer |
   try {
     const arrayBuffer: ArrayBuffer = await audioBlob.arrayBuffer();
     const audioBuffer: AudioBuffer = await audioContext.decodeAudioData(arrayBuffer);
-    const resampled: AudioBuffer = await resampleAudioBuffer(audioBuffer, 16000);
 
-    return resampled;
+    return audioBuffer;
   } catch (error) {
     console.error('Error decoding audio data:', error);
 
@@ -214,30 +214,17 @@ export function audioBufferToBlob(audioBuffer: AudioBuffer): Blob {
   const [left, right] = [audioBuffer.getChannelData(0), audioBuffer.getChannelData(1)];
 
   return getBlobFromChunkData(left, right);
-  // const interleaved = new Float32Array(left.length + right.length);
-  // for (let src = 0, dst = 0; src < left.length; src++, dst += 2) {
-  //   interleaved[dst] = left[src];
-  //   interleaved[dst + 1] = right[src];
-  // }
-  // const wavBytes = getWavBytes(interleaved.buffer, {
-  //   isFloat: true,
-  //   numChannels: 2,
-  //   sampleRate: 16000
-  // });
-  //
-  // return new Blob([wavBytes], { type: 'audio/wav' });
 }
 
 export const splitAudioBlob = async (blob: Blob): Promise<Blob[]> => {
   const arrayBuffer: ArrayBuffer = await blob.arrayBuffer();
   const audioBuffer: AudioBuffer = await audioContext.decodeAudioData(arrayBuffer);
-  const resampled: AudioBuffer = await resampleAudioBuffer(audioBuffer, 16000);
 
   // split into blobs
   const blobs = chunkAudioToBlobs({
-    left: resampled.getChannelData(0),
-    right: resampled.getChannelData(1),
-  }, resampled.sampleRate / 100); //1s = 1000ms = 100 chunks
+    left: audioBuffer.getChannelData(0),
+    right: audioBuffer.getChannelData(1)
+  }, audioBuffer.sampleRate / 100, audioBuffer.sampleRate); //1s = 1000ms = 100 chunks
 
   return blobs;
 };
@@ -246,8 +233,9 @@ export const concatAudioBlob = async (blobs: Blob[]): Promise<Blob> => {
   const audioBuffers = await Promise.all(blobs.map(createAudioBufferFromBlob));
   const filteredAudioBuffers = audioBuffers.filter((buffer) => !!buffer) as AudioBuffer[];
   const concatedAudioBuffers = concatenateAudioBuffers(filteredAudioBuffers);
+  const resampled: AudioBuffer = await resampleAudioBuffer(concatedAudioBuffers, 16000);
 
-  return audioBufferToBlob(concatedAudioBuffers);
+  return audioBufferToBlob(resampled);
 };
 
 export const convertToBase64 = (blob: Blob, callback: (base64Str: string) => void) => {

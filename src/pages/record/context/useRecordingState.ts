@@ -11,10 +11,8 @@ import {
   NON_SPEECH_THRESHOLD,
   PRE_SPEECH_BUFFER,
   POST_SPEECH_BUFFER,
-  UNIT,
   VAD_DELAY,
-  MIN_AUDIO_UNIT,
-  PAUSE_TIME
+  MIN_AUDIO_UNIT
 } from '../const';
 import {
   splitAudioBlob,
@@ -28,15 +26,13 @@ import { useHandleMediaStream, useWebSocket } from '../hook';
 const useRecordingState = (): RecordingState => {
   const [recordingState, setRecordingState] = useState<RECORDING_STATE>(RECORDING_STATE.INIT);
   const [recordRTC, setRecordRTC] = useState<RecordRTC | null>(null);
-  const [recordDataList, setRecordDataList] = useState<RecordData[]>([]);
   const [newRecordData, setNewRecordData] = useState<RecordData | null>(null);
   const [newAudioBlob, setNewAudioBlob] = useState<Blob | null>(null);
   const [, setVadPendingAudioMap] = useState<{[key: string]: RecordData}>({});
   const [transcriptData, setTranscriptData] = useState<string>('');
-  const [silenceCounter, setSilenceCounter] = useState<number>(0);
   const [blobDataMap, setBlobDataMap] = useState<{ [key: string]: BlobData }>({});
   const [recordedBlob, setRecordedBlob] = useState<Blob | null>(null);
-  const [blobBuffers, setBlobBuffers] = useState<Blob[]>([]);
+  const [, setBlobBuffers] = useState<Blob[]>([]);
   const zeroSpanLength = useRef<number>(0);
   const isSpeech = useRef<boolean>(false);
   const containsSpeech = useRef<boolean>(false);
@@ -81,29 +77,6 @@ const useRecordingState = (): RecordingState => {
     messageHandler: onTranscribeSocketMessage
   });
 
-  // const getTranscriptFromRecordData = async (data: RecordData[]) => {
-  //   const audioBlobs = data.map((item) => item.blob);
-  //   const concatenatedBlob = await concatAudioBlob(audioBlobs);
-  //   if (concatenatedBlob && transcribeSocket.getSocket()?.readyState === WS_STATE.OPEN) {
-  //     const id = Date.now();
-  //     setBlobDataMap((oldData) => ({
-  //       ...oldData, [id]: { id, blob: concatenatedBlob, transcript: '' }
-  //     }));
-  //     const convertBase64Callback = (base64: string) => {
-  //       const audioData = {
-  //         id,
-  //         audio_data: base64
-  //       };
-  //       transcribeSocket.send(audioData);
-  //       setRecordDataList(filterByTimestamp(data, data[data.length - 1].timestamp + 1));
-  //       setSilenceCounter(0);
-  //     };
-  //     convertToBase64(concatenatedBlob, convertBase64Callback);
-  //   } else {
-  //     setRecordDataList(data);
-  //   }
-  // };
-
   const getTranscribeFromBlobs = async (blobs: Blob[]) => {
     const concatenatedBlob = await concatAudioBlob(blobs);
     if (concatenatedBlob && transcribeSocket.getSocket()?.readyState === WS_STATE.OPEN) {
@@ -122,7 +95,7 @@ const useRecordingState = (): RecordingState => {
     }
   };
 
-  const handleVADBlobData = (blob: Blob) => {
+  const handleVADBlobData = async (blob: Blob) => {
     const timestamp = Date.now();
     const convertBase64Callback = (base64: string) => {
       const data = {
@@ -277,7 +250,6 @@ const useRecordingState = (): RecordingState => {
     stopAllMediaStream();
     setTranscriptData('');
     setRecordingState(RECORDING_STATE.INIT);
-    setRecordDataList([]);
     setNewAudioBlob(null);
     setNewRecordData(null);
     setVadPendingAudioMap({});
