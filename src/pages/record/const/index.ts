@@ -44,17 +44,18 @@ export const NO_VOICE_DETECTION_CHARACTER_OCCURRENCES = 20;
 
 export const SILENCE_COUNTER_LIMIT = 3;
 
-export const SPEECH_TO_TEXT_WS = 'wss://api-draid.aiscaler.net/speech2text-service';
-// export const SPEECH_TO_TEXT_WS = 'ws://10.208.208.231:8080';
+// export const SPEECH_TO_TEXT_WS = 'wss://api-draid.aiscaler.net/speech2text-service/speech2text-service';
+export const SPEECH_TO_TEXT_WS = 'ws://10.208.208.231:8080/speech2text-service';
 // export const SPEECH_TO_TEXT_WS = 'wss://api.draid.ai/speech2text-service';
 
 export const API_SENME_PLUGIN_WSS = 'wss://senme-plugin-beta.aiscaler.net';
 
-export const PAUSE_TIME = 200;
+export const PAUSE_TIME = 300;
 export const NON_SPEECH_THRESHOLD = PAUSE_TIME / 10; // 30
 export const PRE_SPEECH_BUFFER = PAUSE_TIME / 10 - 10; // 10 - 10
-export const POST_SPEECH_BUFFER = 0;
+export const POST_SPEECH_BUFFER = NON_SPEECH_THRESHOLD - 20;
 export const VAD_DELAY = 10;
 export const UNIT = 480;
 export const MIN_AUDIO_UNIT = 200; //200 UNIT each 10ms = 2s
+export const MIN_SPEECH_LEN = 50; // 30 UNIT each 10ms = 300ms
 
