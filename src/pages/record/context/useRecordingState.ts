@@ -124,16 +124,13 @@ const useRecordingState = (): RecordingState => {
       for (let i = 0; i <= loopLength; i++) {
         newBuffers.push(splitBlobs[i]);
         if (vadResult[i] === 0) {
-          zeroSpanLength.current = zeroSpanLength.current + 1;
+          zeroSpanLength.current += 1;
           if (isSpeech.current) {
             isSpeech.current = false;
           }
           if (containsSpeech.current) {
             if (zeroSpanLength.current > NON_SPEECH_THRESHOLD) {
-              if (newBuffers.length >  MIN_AUDIO_UNIT) {
-                console.log(newBuffers.length);
-                console.log(zeroSpanLength.current);
-                // speech_span = self.speech_buff[:-self.unit * (self.zero_span_length - self.post_speech_buffer)]
+              if (newBuffers.length > MIN_AUDIO_UNIT) {
                 const postSpeechBuffer = newBuffers.slice(PRE_SPEECH_BUFFER + VAD_DELAY);
                 const speechSpan = newBuffers.slice(0, -(zeroSpanLength.current - POST_SPEECH_BUFFER));
                 if (speechSpan.length) {
@@ -144,19 +141,15 @@ const useRecordingState = (): RecordingState => {
                 containsSpeech.current = false;
               }
             }
-          } else {
-            if (newBuffers.length > PRE_SPEECH_BUFFER + VAD_DELAY) {
-              const postSpeechBuffer = newBuffers.slice(-(PRE_SPEECH_BUFFER + VAD_DELAY));
-              newBuffers.length = 0;
-              newBuffers.push(...postSpeechBuffer);
-            }
+          } else if (newBuffers.length > PRE_SPEECH_BUFFER + VAD_DELAY) {
+            const postSpeechBuffer = newBuffers.slice(-(PRE_SPEECH_BUFFER + VAD_DELAY));
+            newBuffers.length = 0;
+            newBuffers.push(...postSpeechBuffer);
           }
-        } else {
-          if (!isSpeech.current) {
-            isSpeech.current = true;
-            containsSpeech.current = true;
-            zeroSpanLength.current = 0;
-          }
+        } else if (!isSpeech.current) {
+          isSpeech.current = true;
+          containsSpeech.current = true;
+          zeroSpanLength.current = 0;
         }
       }
 
