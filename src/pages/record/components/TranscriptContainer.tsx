@@ -30,9 +30,9 @@ const TranscriptContainer = () => {
           key={item.id}
         >
           <Grid container justifyContent="space-between">
-            <Grid item>
+            <Grid item xs={9}>
               <Typography>
-                {`${item.id}: ${item.transcript === null ? 'null' : (item.transcript || '[Empty]')}`}
+                {`${item.id}: ${item.transcript === null ? '[null]' : (item.transcript || '[empty]')}`}
               </Typography>
             </Grid>
             <Grid item>
