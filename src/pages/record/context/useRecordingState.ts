@@ -39,6 +39,10 @@ const useRecordingState = (): RecordingState => {
   const isSpeech = useRef<boolean>(false);
   const containsSpeech = useRef<boolean>(false);
   const { mapNewStream, stopAllMediaStream } = useHandleMediaStream();
+  interface BlobSendTimesMap {
+    [key: number]: number; // This allows numeric keys with number values
+  }
+  const sendTimesMap = useRef<BlobSendTimesMap>({});
 
   const onVadSocketMessage = (e: MessageEvent) => {
     setVadPendingAudioMap((oldValue) => {
@@ -58,7 +62,17 @@ const useRecordingState = (): RecordingState => {
   const onTranscribeSocketMessage = (e: MessageEvent) => {
     setRecordingState((value: RECORDING_STATE) => {
       const data = JSON.parse(e.data);
+      const id = data.id;
+
       const newTranscript = data.sentences?.map((el: any) => el.text).join(' ') || '';
+      if (newTranscript.length > 0) {
+        const receiveTimestamp = Date.now();
+        const sendTimestamp = sendTimesMap.current[id];
+        const elapsed = receiveTimestamp - sendTimestamp;    
+        console.log(`Time taken for transcription of blob ${id}: ${elapsed}ms`);
+        delete sendTimesMap.current[id];
+      }
+
       setTranscriptData((oldData) => oldData.concat((oldData && newTranscript) ? '\n' : '', newTranscript));
       setBlobDataMap((oldData) => ({
         ...oldData, [data.id]: { ...oldData[data.id], transcript: newTranscript }
@@ -91,6 +105,7 @@ const useRecordingState = (): RecordingState => {
           id,
           audio_data: base64
         };
+        sendTimesMap.current[id] = Date.now(); // Record the send time before sending
         transcribeSocket.send(audioData);
       };
       convertToBase64(concatenatedBlob, convertBase64Callback);
